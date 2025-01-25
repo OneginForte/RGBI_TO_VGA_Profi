@@ -1,0 +1,121 @@
+
+.program pio_capture_0
+.wrap_target
+l000:
+PUBLIC delay:
+    nop               ; the capture delay will be added to this command
+l001:
+    in     pins, 8
+    push   block
+    nop    [8]
+    jmp    pin, l001
+l005:
+    in     pins, 8    ; sub-synchronization by sync pulse
+    push   block
+    jmp    pin, l000
+    jmp    pin, l000
+    jmp    pin, l000
+    jmp    pin, l000
+    jmp    pin, l000
+    jmp    pin, l000
+    jmp    pin, l000
+    jmp    pin, l000
+    jmp    pin, l000
+    jmp    l005
+.wrap
+
+.program pio_capture_1
+.define F_PIN 6
+.define HS_PIN 4
+.wrap_target
+PUBLIC delay:
+    nop                 ; a capture delay will be added to this command
+PUBLIC divider1:
+    set    x, 0         ; an external clock divider will be added to this command
+l04:
+    wait   0 gpio, F_PIN
+    in     pins, 8
+    wait   1 gpio, F_PIN
+    jmp    x--, l04
+    push   block
+    jmp    pin, divider1 ; HS_PIN
+PUBLIC divider2:
+    set    x, 0
+l02:
+    wait   0 gpio, F_PIN
+    jmp    pin, 0
+    in     pins, 8
+    wait   1 gpio, F_PIN
+    jmp    x--, l02
+    push   block    
+    jmp    divider2
+.wrap
+
+.program pio_capture_2
+.define F_PIN 6
+.define HS_PIN 4
+.define VS_PIN 5
+start:
+    pull   block
+    mov    y, osr
+new_frame:
+    wait   0 gpio, VS_PIN
+    wait   1 gpio, VS_PIN
+skip_y:
+    wait   0 gpio, F_PIN
+    wait   1 gpio, F_PIN
+    jmp    y--, skip_y
+    wait   0 gpio, HS_PIN
+
+get_line:
+    ; Here starts first visible line
+    pull;   block
+    mov    y, osr
+    pull;   block
+    mov    x, osr
+    wait   1 gpio, HS_PIN
+l02: ; Skip x_pos ticks
+    wait   0 gpio, F_PIN
+    wait   1 gpio, F_PIN
+    jmp    x--, l02
+
+l01:
+    wait   0 gpio, F_PIN
+PUBLIC delay:
+    nop                 ; a capture delay will be added to this command
+    in     pins, 8
+    wait   1 gpio, F_PIN
+    push   block
+    jmp    y--, l01
+    pull;   block
+    mov    y, osr
+    wait   0 gpio, HS_PIN
+    jmp    !y, get_line
+    jmp    new_frame
+
+.wrap
+
+.program pio_vga
+.wrap_target
+    out   pins, 8
+.wrap
+
+.program pio_dvi
+.wrap_target
+.side_set 2
+    out pins, 6   side 2
+    out pins, 6   side 2
+    out pins, 6   side 2
+    out pins, 6   side 2
+    out pins, 6   side 2
+    out pins, 6   side 1
+    out pins, 6   side 1
+    out pins, 6   side 1
+    out pins, 6   side 1
+    out pins, 6   side 1
+.wrap
+
+% c-sdk {
+// this is a raw helper function for use by the user which sets up the GPIO output, and configures the SM to output on a particular pin
+
+%}
