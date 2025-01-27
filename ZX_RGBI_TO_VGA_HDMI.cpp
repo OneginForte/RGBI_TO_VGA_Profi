@@ -1203,7 +1203,7 @@ void setup()
 
   // loading saved settings
   memcpy(&settings, saved_settings, sizeof(settings_t));
-  if (settings.scanlines_mode)
+  //if (settings.scanlines_mode)
     settings = settings_mode1;
   //settings.ext_clk_divider = 1;
   // correct if there is garbage in the cells
@@ -1230,6 +1230,8 @@ void setup()
   Serial.println("");
 }
 
+bool _80DS = true;
+
 void loop()
 {
   char inbyte = 0;
@@ -1246,12 +1248,15 @@ void loop()
     if (gpio_get(MODE1_PIN)==0 && button_pressed != 1)
     {
       button_pressed = 1;
-      settings = settings_mode1;
+      _80DS = true;
+      //settings = settings_mode1;
+
     }
     else if (gpio_get(MODE2_PIN)==0 && button_pressed != 2)
     {
       button_pressed = 2;
-      settings = settings_mode2;
+      _80DS = false;
+      //settings = settings_mode2;
     }
     else if (gpio_get(RESET_PIN)==0 && button_pressed != 3)
     {
@@ -1263,6 +1268,7 @@ void loop()
       button_pressed = 0;
       continue;
     }
+    continue;
     //save_and_reboot(); 
     stop_vga();
     start_vga(*(vga_modes[settings.video_out_mode]));
@@ -1296,7 +1302,7 @@ void setup1()
   while (!start_core0)
     sleep_ms(10);
 
-  settings = settings_mode1;
+  //settings = settings_mode1;
   start_capture(&settings);
 }
 

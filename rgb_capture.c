@@ -119,8 +119,10 @@ int8_t set_capture_delay(int8_t delay) {
     capture_settings.delay = DELAY_MIN;
   else
     capture_settings.delay = delay;
-
-  PIO_CAP->instr_mem[offset+pio_capture_2_offset_delay] = nop_opcode | (capture_settings.delay << 8);
+  if (capture_settings.cap_sync_mode == EXT2)
+    PIO_CAP->instr_mem[offset+pio_capture_2_offset_delay] = nop_opcode | (capture_settings.delay << 8);
+  else if (capture_settings.cap_sync_mode == EXT)
+    PIO_CAP->instr_mem[offset+pio_capture_1_offset_delay] = nop_opcode | (capture_settings.delay << 8);
 
   return capture_settings.delay;
 }
@@ -135,15 +137,16 @@ inline int min(int a, int b)
   return a>b?b:a;
 }
 
-//#define DISABLE_INTERRUPTS 1
-
 uint16_t line_no = 0;
+extern bool _80DS;
 
 void __not_in_flash_func(dma_handler_capture2())
 {
   static uint32_t dma_buf_idx;
   pio_sm_put(PIO_CAP, SM_CAP, CAP_DMA_LINE_BUF_SIZE - 1);
-  pio_sm_put(PIO_CAP, SM_CAP, capture_settings.shX);
+  int nShXadd = _80DS ? -44 : 80;
+  int shX = capture_settings.shX + nShXadd;
+  pio_sm_put(PIO_CAP, SM_CAP, shX);
   pio_sm_put(PIO_CAP, SM_CAP, line_no == 1 ? capture_settings.shY * 640 : 0);
 
   dma_hw->ints1 = 1u << dma_ch1;
@@ -154,32 +157,32 @@ void __not_in_flash_func(dma_handler_capture2())
 
   const uint32_t *buf32 = cap_dma_buf_addr[dma_buf_idx++ & 1];
 
-  //static uint8_t *cap_buf8_s = g_v_buf;
-  uint8_t *cap_buf8 = cap_buf + (V_BUF_H - line_no)*V_BUF_W / 2;//cap_buf8_s;
+  uint8_t *cap_buf8 = cap_buf + (V_BUF_H - line_no) * V_BUF_W / 2;
 
-  for (uint32_t k = CAP_DMA_LINE_BUF_SIZE / 4; k--;)
+  uint32_t nShift = _80DS ? 0 : 60;
+  if (!_80DS)
+  {
+    uint8_t c = *((uint8_t*)buf32) & 0xF;
+    c |= c << 4; 
+    for (uint32_t k = nShift / 4; k--;)
+      *cap_buf8++ = *cap_buf8++ = c;
+  }
+  for (uint32_t k = (CAP_DMA_LINE_BUF_SIZE - nShift/*  - shX */) / 4; k--;)
   {
     uint32_t val32 = (*buf32++) & 0x0f0f0f0f;
     uint32_t v = (val32 | (val32 >> 4));
     *cap_buf8++ = v;         // & 0xFF;
     *cap_buf8++ = (v >> 16); // & 0xFF;
   }
-  if (0)
-  for (uint32_t k = (V_BUF_W - CAP_DMA_LINE_BUF_SIZE) / 4; k--;)
-  {
-    *cap_buf8++ = *cap_buf8++ = 0;
-  }
 
   if (--line_no == 0)
   {
     line_no = V_BUF_H;
-    if (true || frame_count > 10) // power on delay // noise immunity at the sync input
-      cap_buf8 = cap_buf = get_v_buf_in();
+    cap_buf8 = cap_buf = get_v_buf_in();
 
     frame_count++;
     gpio_put(PIN_LED, frame_count & 0x20);
   }
-  //cap_buf8_s = cap_buf8;
 }
 
 void __not_in_flash_func(dma_handler_capture())
@@ -220,7 +223,7 @@ void __not_in_flash_func(dma_handler_capture())
   const uint32_t sync32_mask = (((uint32_t)VHS_MASK) << 24) | (((uint32_t)VHS_MASK) << 16) | (((uint32_t)VHS_MASK) << 8) | ((uint32_t)VHS_MASK);
   for (uint32_t k = CAP_DMA_BUF_SIZE; k--;)
   {
- #if 1
+ #if 0
     if (((uint32_t)buf8 & 3u) == 0 && k > 3)
     {
       if (y<0 || y>=V_BUF_H)
@@ -301,16 +304,12 @@ void __not_in_flash_func(dma_handler_capture())
       {
         y++;
         x = (-shX - 1) | 1u;
-       // set the pointer to the beginning of a new line
+        // set the pointer to the beginning of a new line
         if ((y >= 0) && (cap_buf != NULL))
-          cap_buf8 = &(((uint8_t *)cap_buf)[y * V_BUF_W / 2]);
+          cap_buf8 = &(((uint8_t *)cap_buf)[y * V_BUF_W / 4]);
       }
 
       CS_idx++;
-      CS_idx_s = CS_idx;
-      if (x>0)
-        x_s = x;
- 
       if (sync_mask == HS_MASK) // composite sync
       {
         if (CS_idx < V_SYNC_PULSE) // detect V_SYNC pulse
@@ -343,7 +342,7 @@ void __not_in_flash_func(dma_handler_capture())
       if ((x < 0) || (y < 0))
         continue;
 
-      if ((x >= V_BUF_W) || (y >= V_BUF_H))
+      if ((x >= V_BUF_W / 2) || (y >= V_BUF_H))
         continue;
 
       *cap_buf8++ = (pix8 & 0xf) | (val8 << 4);
@@ -534,6 +533,8 @@ void start_capture(settings_t *settings)
   }
 
   uint ui32CAP_DMA_BUF_SIZE = bEXT2 ? CAP_DMA_LINE_BUF_SIZE : CAP_DMA_BUF_SIZE;
+  if (!_80DS)
+    ui32CAP_DMA_BUF_SIZE -= 60;
   dma_channel_configure(
       dma_ch0,
       &c0,
@@ -563,7 +564,7 @@ void start_capture(settings_t *settings)
   dma_channel_set_irq1_enabled(dma_ch1, true);
 
   // configure the processor to run dma_handler() when DMA IRQ 0 is asserted
-  line_no = V_BUF_H-200; 
+  line_no = V_BUF_H; 
   irq_set_exclusive_handler(DMA_IRQ_1, bEXT2 ? dma_handler_capture2 : dma_handler_capture);
   irq_set_enabled(DMA_IRQ_1, true);
 

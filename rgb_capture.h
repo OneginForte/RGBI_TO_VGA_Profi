@@ -2,14 +2,14 @@
 #define RGB_CAPTURE_H
 #include "g_config.h"
 
-#define SAMPL_F (12)
+#define SAMPL_F (7)
 #define H_SYNC_PULSE (48 * SAMPL_F / 10)  //  4 µs @ 7.0 MHz pixel clock
 #define V_SYNC_PULSE (40 * SAMPL_F) // 30 µs @ 7.0 MHz pixel clock
 
 #define CAP_LINE_LENGTH 1024
 #define CAP_DMA_BUF_CNT 30
 #define CAP_DMA_BUF_SIZE (CAP_LINE_LENGTH * CAP_DMA_BUF_CNT)
-#define CAP_DMA_LINE_BUF_SIZE 600 //V_BUF_W
+#define CAP_DMA_LINE_BUF_SIZE 640 //V_BUF_W
 
 extern uint32_t frame_count;
 
