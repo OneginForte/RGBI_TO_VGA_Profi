@@ -188,7 +188,7 @@ extern uint32_t frame_count;
 
 // video buffer
 // actual size is 512x240
-#define V_BUF_W (320*2)
+#define V_BUF_W (320*2+8)
 #define V_BUF_H 260
 #define V_BUF_SZ (V_BUF_H * V_BUF_W / 2)
 

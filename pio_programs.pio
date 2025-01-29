@@ -65,15 +65,23 @@ skip_y:
     wait   0 gpio, F_PIN
     wait   1 gpio, F_PIN
     jmp    y--, skip_y
-    wait   0 gpio, HS_PIN
-
 get_line:
     ; Here starts first visible line
+    wait   0 gpio, HS_PIN
+    ;wait   1 gpio, HS_PIN
+    set    x, 0
+measure_hs:
+    jmp    x--, l10
+l10:
+    jmp    pin, l11
+    jmp    measure_hs
+l11:
+    mov    isr, x
+    push   block
     pull;   block
     mov    y, osr
     pull;   block
     mov    x, osr
-    wait   1 gpio, HS_PIN
 l02: ; Skip x_pos ticks
     wait   0 gpio, F_PIN
     wait   1 gpio, F_PIN
@@ -89,7 +97,6 @@ PUBLIC delay:
     jmp    y--, l01
     pull;   block
     mov    y, osr
-    wait   0 gpio, HS_PIN
     jmp    !y, get_line
     jmp    new_frame
 
