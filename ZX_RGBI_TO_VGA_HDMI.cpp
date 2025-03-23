@@ -1203,7 +1203,7 @@ void setup()
 
   // loading saved settings
   memcpy(&settings, saved_settings, sizeof(settings_t));
-  //if (settings.scanlines_mode)
+  if (settings.video_out_mode != VGA1280x1024_d24)
     settings = settings_mode1;
   //settings.ext_clk_divider = 1;
   // correct if there is garbage in the cells
