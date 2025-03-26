@@ -88,7 +88,7 @@ void print_main_menu()
   Serial.println("  p   show configuration");
   Serial.println("  h   show help (this menu)");
   Serial.println("  q   exit configuration mode");
-  Serial.println("  w   save configuration and restart");
+  Serial.println("  w   save configuration");
   Serial.println("");
 }
 
@@ -465,14 +465,14 @@ void set_scanlines_mode()
     set_vga_scanlines_mode(settings.scanlines_mode);
 }
 
-void save_and_reboot()
+void save_set()
 {
   save_settings(&settings);
   // rp2040.restart();
-  watchdog_reboot(0, 0, 10);
-  while (1)
-  {
-  }
+  // watchdog_reboot(0, 0, 10);
+  // while (1)
+  // {
+  // }
 }
 
 void process_menu(char &inbyte)
@@ -1149,7 +1149,7 @@ void process_menu(char &inbyte)
     break;
 
   case 'w':
-    save_and_reboot();
+    save_set();
     break;
 
   default:
@@ -1261,7 +1261,7 @@ void loop()
     else if (gpio_get(RESET_PIN)==0 && button_pressed != 3)
     {
       button_pressed = 3;
-      save_and_reboot(); 
+      save_set(); 
     }
    else
     {

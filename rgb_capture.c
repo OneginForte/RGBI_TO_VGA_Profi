@@ -190,7 +190,7 @@ void __not_in_flash_func(dma_handler_capture2())
     line_no = V_BUF_H;
     uint16_t max_val = 0;
     uint8_t max_idx = 0;
-    for (uint8_t i=0; i<26; i++)
+    for (uint8_t i=7; i<26; i++)
     {
       if (len_hist[i] > max_val)
       {
@@ -201,7 +201,7 @@ void __not_in_flash_func(dma_handler_capture2())
     }
     if (_80DS)
     {
-      if (max_idx == 11)
+      if (max_idx >= 10 && max_idx <= 11)
         _80DS = false;
     }
     else
