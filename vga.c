@@ -243,11 +243,12 @@ void start_vga(video_mode_t v_mode)
   if (v_margin < 0)
     v_margin = 0;
 
-  vreg_set_voltage(VREG_VOLTAGE_1_25);
+  return;
+  vreg_set_voltage(VREG_VOLTAGE_1_30);
   sleep_ms(100);
   set_sys_clock_khz(video_mode.sys_freq, true);
   sleep_ms(10);
-
+ 
   // palette initialization
   for (int i = 0; i < 16; i++)
     for (int j = 0; j < 16; j++)

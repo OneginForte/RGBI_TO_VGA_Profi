@@ -16,7 +16,101 @@ extern "C"
 #include "hardware/clocks.h"
 #include "hardware/pio.h"
 #include "hardware/watchdog.h"
-#include "Serial.h"
+#include "pico/stdlib.h"
+#include "pico/flash.h"
+//#include "Serial.h"
+using String=std::string;
+
+class SerialStdio
+{
+  int c = PICO_ERROR_TIMEOUT;
+  size_t printNumber(unsigned long n, uint8_t base)
+  {
+    char buf[8 * sizeof(long) + 1]; // Assumes 8-bit chars plus zero byte.
+    char *str = &buf[sizeof(buf) - 1];
+  
+    *str = '\0';
+  
+    // prevent crash if called with base == 1
+    if (base < 2)
+      base = 10;
+  
+    do
+    {
+      char c = n % base;
+      n /= base;
+  
+      *--str = c < 10 ? c + '0' : c + 'A' - 10;
+    } while (n);
+  
+    return write(str);
+  }
+public:
+  bool available()
+  {
+    c = stdio_getchar_timeout_us(0);
+    return c != PICO_ERROR_TIMEOUT;
+  }
+  int read()
+  {
+    if (c != PICO_ERROR_TIMEOUT)
+    {
+      int c1 = c;
+      c = PICO_ERROR_TIMEOUT;
+      return c1;
+    }
+    return stdio_getchar();
+  }
+  size_t println(const char * s)
+  {
+    return printf("%s\n", s);
+  }
+  size_t print(const char * s)
+  {
+    return printf("%s", s);
+  }
+  size_t write(const char * s)
+  {
+    return print(s);
+  }
+  size_t print(long n, int base)
+  {
+    if (base == 0)
+    {
+      return write(n);
+    }
+    else if (base == 10)
+    {
+      if (n < 0)
+      {
+        int t = print('-');
+        n = -n;
+        return printNumber(n, 10) + t;
+      }
+      return printNumber(n, 10);
+    }
+    else
+    {
+      return printNumber(n, base);
+    }
+  }
+  size_t println(long n, int base)
+  {
+    return print(n, base) + print("\n");
+  }
+  size_t print(char c)
+  {
+    return write(c);
+  }
+  size_t write(char c)
+  {
+    return stdio_putchar(c);
+  }
+  size_t println(const String& s)
+  {
+    return println(s.c_str());
+  } 
+} Serial;
 
 settings_t settings;
 video_mode_t video_mode;
@@ -24,14 +118,15 @@ video_mode_t video_mode;
 #define HEX 16
 #define DEC 10
 
-extern SerialUSB Serial;
+//extern SerialUSB Serial;
 
 const int *saved_settings = (const int *)(XIP_BASE + (PICO_FLASH_SIZE_BYTES - FLASH_SECTOR_SIZE));
 bool start_core0 = false;
 bool bRestart = false;
 
-void save_settings(settings_t *settings)
+static void save_settings_safe(void *param)
 {
+  settings_t* settings = (settings_t*)param;
   Serial.println("  Saving settings...");
 
   check_settings(settings);
@@ -44,6 +139,11 @@ void save_settings(settings_t *settings)
 
   // restore_interrupts(ints);
   // rp2040.resumeOtherCore();
+}
+
+void save_settings(settings_t *settings)
+{
+  flash_safe_execute(save_settings_safe, settings, 0);
 }
 
 void print_byte_hex(uint8_t byte)
@@ -1192,6 +1292,7 @@ settings_t settings_mode2 =
 
 void setup()
 {
+  flash_safe_execute_core_init();
   for (uint i=MODE1_PIN; i<=RESET_PIN; ++i)
   {
     gpio_init(i);
@@ -1199,7 +1300,7 @@ void setup()
     gpio_pull_up(i);
   }
 
-  Serial.begin(9600);
+  //Serial.begin(9600);
 
   // loading saved settings
   memcpy(&settings, saved_settings, sizeof(settings_t));

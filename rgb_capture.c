@@ -602,7 +602,7 @@ void start_capture(settings_t *settings)
 
   dma_channel_set_irq1_enabled(dma_ch1, true);
 
-  // configure the processor to run dma_handler() when DMA IRQ 0 is asserted
+  // configure the processor to run dma_handler() when DMA IRQ 1 is asserted
   line_no = V_BUF_H;
   irq_set_exclusive_handler(DMA_IRQ_1, bEXT2 ? dma_handler_capture2 : dma_handler_capture);
   irq_set_enabled(DMA_IRQ_1, true);

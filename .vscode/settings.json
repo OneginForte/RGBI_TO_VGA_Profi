@@ -63,6 +63,8 @@
         "config_autogen.h": "c",
         "types.h": "c",
         "irq.h": "c",
-        "pio_programs.h": "c"
+        "pio_programs.h": "c",
+        "ostream": "cpp",
+        "stdio.h": "c"
     }
 }

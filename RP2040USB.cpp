@@ -267,12 +267,12 @@ void __SetupUSBDescriptor() {
             TUD_HID_DESCRIPTOR(hid_itf, 0, HID_ITF_PROTOCOL_NONE, hid_report_len, EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, (uint8_t)usb_hid_poll_interval)
         };
 
-        uint8_t msd_itf = interface_count - 1;
-        uint8_t msd_desc[TUD_MSC_DESC_LEN] = {
-            TUD_MSC_DESCRIPTOR(msd_itf, 0, USBD_MSC_EPOUT, USBD_MSC_EPIN, USBD_MSC_EPSIZE)
-        };
+        // uint8_t msd_itf = interface_count - 1;
+        // uint8_t msd_desc[TUD_MSC_DESC_LEN] = {
+        //     TUD_MSC_DESCRIPTOR(msd_itf, 0, USBD_MSC_EPOUT, USBD_MSC_EPIN, USBD_MSC_EPSIZE)
+        // };
 
-        int usbd_desc_len = TUD_CONFIG_DESC_LEN + (__USBInstallSerial ? sizeof(cdc_desc) : 0) + (hasHID ? sizeof(hid_desc) : 0) + (__USBInstallMassStorage ? sizeof(msd_desc) : 0);
+        int usbd_desc_len = TUD_CONFIG_DESC_LEN + (__USBInstallSerial ? sizeof(cdc_desc) : 0) + (hasHID ? sizeof(hid_desc) : 0) /* + (__USBInstallMassStorage ? sizeof(msd_desc) : 0 )*/;
 
 #ifdef ENABLE_PICOTOOL_USB
         uint8_t picotool_itf = interface_count++;
@@ -302,10 +302,10 @@ void __SetupUSBDescriptor() {
                 memcpy(ptr, hid_desc, sizeof(hid_desc));
                 ptr += sizeof(hid_desc);
             }
-            if (__USBInstallMassStorage) {
-                memcpy(ptr, msd_desc, sizeof(msd_desc));
-                ptr += sizeof(msd_desc);
-            }
+            // if (__USBInstallMassStorage) {
+            //     memcpy(ptr, msd_desc, sizeof(msd_desc));
+            //     ptr += sizeof(msd_desc);
+            // }
 #ifdef ENABLE_PICOTOOL_USB
             memcpy(ptr, picotool_desc, sizeof(picotool_desc));
             ptr += sizeof(picotool_desc);
@@ -564,56 +564,9 @@ usbd_class_driver_t const *usbd_app_driver_get_cb(uint8_t *driver_count) {
     return &_resetd_driver;
 }
 
-#elif defined NO_USB
-
-#warning "NO_USB selected. No output to Serial will occur!"
-
-#include <Arduino.h>
-
-void SerialUSB::begin(unsigned long baud) {
-}
-
-void SerialUSB::end() {
-
-}
-
-int SerialUSB::peek() {
-    return 0;
-}
-
-int SerialUSB::read() {
-    return -1;
-}
-
-int SerialUSB::available() {
-    return 0;
-}
-
-int SerialUSB::availableForWrite() {
-    return 0;
-}
-
-void SerialUSB::flush() {
-
-}
-
-size_t SerialUSB::write(uint8_t c) {
-    (void) c;
-    return 0;
-}
-
-size_t SerialUSB::write(const uint8_t *buf, size_t length) {
-    (void) buf;
-    (void) length;
-    return 0;
-}
-
-SerialUSB::operator bool() {
-    return false;
-}
-
-SerialUSB Serial;
-
 #endif
+void __USBInstallSerial()
+{}
+
 
 
