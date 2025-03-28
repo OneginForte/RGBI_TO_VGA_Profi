@@ -13,6 +13,7 @@
 
 extern uint32_t frame_count;
 
+void set_capture_settings(settings_t *settings);
 int16_t set_capture_shX(int16_t shX);
 int16_t set_capture_shY(int16_t shY);
 int8_t set_capture_delay(int8_t delay);

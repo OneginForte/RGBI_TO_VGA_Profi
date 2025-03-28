@@ -34,7 +34,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(RGBI_TO_VGA main.cpp vga.c dvi.c g_config.c rgb_capture.c v_buf.c ZX_RGBI_TO_VGA_HDMI.cpp)# RP2040USB.cpp)
+add_executable(RGBI_TO_VGA main.cpp vga.c dvi.c g_config.c rgb_capture.c v_buf.c ZX_RGBI_TO_VGA_HDMI.cpp RP2040USB.cpp)
 
 pico_set_program_name(RGBI_TO_VGA "RGBI_TO_VGA")
 pico_set_program_version(RGBI_TO_VGA "0.1.6")
@@ -44,7 +44,7 @@ pico_generate_pio_header(RGBI_TO_VGA ${CMAKE_CURRENT_LIST_DIR}/pio_programs.pio)
 
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(RGBI_TO_VGA 0)
-pico_enable_stdio_usb(RGBI_TO_VGA 1)
+pico_enable_stdio_usb(RGBI_TO_VGA 0)
 #pico_enable_stdio_usb(TARGET ENABLED)
 # Add the standard include files to the build
 target_include_directories(RGBI_TO_VGA PRIVATE ${CMAKE_CURRENT_LIST_DIR})
@@ -58,7 +58,7 @@ target_link_libraries(RGBI_TO_VGA
         pico_unique_id
         pico_stdlib
         #pico_stdio
-        #tinyusb_device
+        tinyusb_device
         #tinyusb_host
         #pico_stdio_usb
         )

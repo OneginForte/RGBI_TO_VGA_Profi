@@ -298,10 +298,10 @@ void __SetupUSBDescriptor() {
                 memcpy(ptr, cdc_desc, sizeof(cdc_desc));
                 ptr += sizeof(cdc_desc);
             }
-            if (hasHID) {
-                memcpy(ptr, hid_desc, sizeof(hid_desc));
-                ptr += sizeof(hid_desc);
-            }
+            // if (hasHID) {
+            //     memcpy(ptr, hid_desc, sizeof(hid_desc));
+            //     ptr += sizeof(hid_desc);
+            // }
             // if (__USBInstallMassStorage) {
             //     memcpy(ptr, msd_desc, sizeof(msd_desc));
             //     ptr += sizeof(msd_desc);

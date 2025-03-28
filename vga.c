@@ -23,7 +23,7 @@
 
 static int dma_ch0;
 static int dma_ch1;
-static video_mode_t video_mode;
+extern video_mode_t video_mode;
 
 static int16_t h_visible_area;
 static int16_t v_visible_area;
@@ -243,8 +243,7 @@ void start_vga(video_mode_t v_mode)
   if (v_margin < 0)
     v_margin = 0;
 
-  return;
-  vreg_set_voltage(VREG_VOLTAGE_1_30);
+  vreg_set_voltage(VREG_VOLTAGE_1_25);
   sleep_ms(100);
   set_sys_clock_khz(video_mode.sys_freq, true);
   sleep_ms(10);

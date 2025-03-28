@@ -10,7 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "tusb.h"
-//#include "RP2040USB.h"
+#include "RP2040USB.h"
 //#include "Serial.h"
 
 extern void setup1() __attribute__((weak));
@@ -40,9 +40,8 @@ void main1()
 
 int main()
 {
-    //vreg_set_voltage(VREG_VOLTAGE_1_25);
+    vreg_set_voltage(VREG_VOLTAGE_1_25);
     //set_sys_clock_khz(243000, true);
-    stdio_init_all();
     // Allocate impure_ptr (newlib temps) if there is a 2nd core running
     // Let rest of core know if we're using FreeRTOS
     bool __isFreeRTOS = false;
@@ -50,13 +49,13 @@ int main()
         _impure_ptr1 = (struct _reent*)calloc(1, sizeof(struct _reent));
         _REENT_INIT_PTR(_impure_ptr1);
     }
-    // __USBStart();
+    __USBStart();
     multicore_launch_core1(main1);
     setup();
     while (true)
     {
         loop();
-        //tud_task();
+        tud_task();
         //__loop();
     }
 }

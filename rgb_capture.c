@@ -141,6 +141,8 @@ inline int min(int a, int b)
 
 uint16_t line_no = 0;
 extern bool _80DS;
+extern settings_t settings_arr[2];
+
 static int dma_size=0;
 static volatile uint16_t len_hist[26] = {};
 
@@ -202,12 +204,18 @@ void __not_in_flash_func(dma_handler_capture2())
     if (_80DS)
     {
       if (max_idx >= 10 && max_idx <= 11)
+      {
         _80DS = false;
+        set_capture_settings(&settings_arr[_80DS]);
+      }
     }
     else
     {
-      if (max_idx == 17)
+      if (max_idx >= 16 && max_idx <= 18)
+      {
         _80DS = true;
+        set_capture_settings(&settings_arr[_80DS]);
+      }
     }
     cap_buf8 = cap_buf = get_v_buf_in();
 
