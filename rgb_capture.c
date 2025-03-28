@@ -426,7 +426,8 @@ void calculate_clkdiv(float freq, uint16_t *div_int, uint8_t *div_frac)
   return;
 }
 
-static uint wrap = 0;
+static uint16_t wrap = 0;
+static uint16_t wrap_target = 0;
 const pio_program_t *program = NULL;
 
 inline uint32_t* dec_byte_ptr(uint32_t* ptr)
@@ -479,8 +480,8 @@ void start_capture(settings_t *settings)
     // set capture delay = 0
     pio_capture_0_program_instructions2[pio_capture_0_offset_delay] = nop_opcode;
 
-    wrap = offset + pio_capture_0_program.length - 1;
-
+    wrap = offset + pio_capture_0_wrap;
+    wrap_target = offset + pio_capture_0_wrap_target;
     break;
   }
 
@@ -498,7 +499,8 @@ void start_capture(settings_t *settings)
     // set capture delay = 0
     pio_capture_1_program_instructions2[pio_capture_1_offset_delay] = nop_opcode;
 
-    wrap = offset + pio_capture_1_program.length - 1;
+    wrap = offset + pio_capture_1_wrap;
+    wrap_target = offset + pio_capture_1_wrap_target;
 
     break;
   }
@@ -515,7 +517,8 @@ void start_capture(settings_t *settings)
     // set capture delay = 0
     pio_capture_2_program_instructions2[pio_capture_2_offset_delay] = nop_opcode;
 
-    wrap = offset + pio_capture_2_program.length - 1;
+    wrap = offset + pio_capture_2_wrap;
+    wrap_target = offset + pio_capture_2_wrap_target;
 
     break;
   }
@@ -524,7 +527,7 @@ void start_capture(settings_t *settings)
   }
 
   pio_sm_config c = pio_get_default_sm_config();
-  sm_config_set_wrap(&c, offset, wrap);
+  sm_config_set_wrap(&c, wrap_target, wrap);
 
   sm_config_set_in_shift(&c, false, false, 8); // autopush not needed
   sm_config_set_in_pins(&c, CAP_PIN_D0);

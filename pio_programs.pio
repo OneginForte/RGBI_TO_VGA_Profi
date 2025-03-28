@@ -58,6 +58,7 @@ l02:
 start:
     pull   block
     mov    y, osr
+.wrap_target
 new_frame:
     wait   0 gpio, VS_PIN
     wait   1 gpio, VS_PIN
@@ -71,6 +72,8 @@ get_line:
     ;wait   1 gpio, HS_PIN
     set    x, 0
 measure_hs:
+    ;wait   0 gpio, F_PIN
+    ;wait   1 gpio, F_PIN
     jmp    x--, l10
 l10:
     jmp    pin, l11
@@ -88,6 +91,9 @@ l02: ; Skip x_pos ticks
     jmp    x--, l02
 
 l01:
+    ;jmp    pin, l03
+    ;jmp    get_line
+l03:
     wait   0 gpio, F_PIN
 PUBLIC delay:
     nop                 ; a capture delay will be added to this command
@@ -98,7 +104,7 @@ PUBLIC delay:
     pull;   block
     mov    y, osr
     jmp    !y, get_line
-    jmp    new_frame
+    ;jmp    new_frame
 
 .wrap
 
