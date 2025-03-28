@@ -4,5 +4,5 @@ For detailed hardware and original software information, please refer to the sou
 
 See .program pio_capture_2 in pio_programs.pio and void __not_in_flash_func(dma_handler_capture2()) in rgb_capture.c for 512x240 mode
 
-SSI and KSI should be connected, sync mode - separate. F should be dot clock (14 or 12 MHz) - Pin 2 U4 for Profi3.2
+SSI and KSI should be connected to corresponding pins, sync mode - separate. F should be dot clock (14 or 12 MHz) - Pin 2 U4 for Profi3.2
 
